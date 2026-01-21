@@ -26,6 +26,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Create build directory
         run: mkdir -p .build/css .build/js .build/lib
 
@@ -50,10 +60,14 @@ jobs:
           cp js/animations.js .build/js/
           echo "✅ JS files copied"
 
-      - name: Update index.html to use local D3.js
+      - name: Apply configuration and update index.html
         run: |
-          sed 's|<script src="https://d3js.org/d3.v7.min.js"></script>|<script src="lib/d3.v7.min.js"></script>|g' index.html > .build/index.html
-          echo "✅ index.html updated"
+          # Apply config.yml values to index.html and replace D3.js CDN with local version
+          ./apply_config.py -i index.html -o .build/index.html.tmp
+          # Replace CDN D3.js with local version
+          sed 's|<script src="https://d3js.org/d3.v7.min.js"></script>|<script src="lib/d3.v7.min.js"></script>|g' .build/index.html.tmp > .build/index.html
+          rm .build/index.html.tmp
+          echo "✅ index.html updated with config values"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

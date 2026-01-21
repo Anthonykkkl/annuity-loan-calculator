@@ -2,6 +2,7 @@
 # /// script
 # dependencies = [
 #   "python-dotenv>=1.0.0",
+#   "pyyaml>=6.0.0",
 # ]
 # ///
 """
@@ -13,9 +14,11 @@ import os
 import sys
 import shutil
 import ftplib
+import re
 from pathlib import Path
 from urllib.request import urlretrieve
 from dotenv import load_dotenv
+import yaml
 
 # ANSI color codes
 class Colors:
@@ -47,7 +50,46 @@ def download_d3js(build_dir):
         print_msg(f"❌ Error downloading D3.js: {e}", Colors.RED)
         return False
 
-def prepare_files(build_dir):
+def load_config(config_path="config.yml"):
+    """Load configuration from YAML file"""
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        print_msg(f"✅ Loaded configuration from {config_path}", Colors.GREEN)
+        return config
+    except FileNotFoundError:
+        print_msg(f"⚠️  Warning: {config_path} not found, using default values", Colors.YELLOW)
+        return None
+    except yaml.YAMLError as e:
+        print_msg(f"⚠️  Warning: Error parsing YAML: {e}, using default values", Colors.YELLOW)
+        return None
+
+def apply_loan_parameters(html_content, loan_config):
+    """Apply loan parameters to HTML content"""
+    if not loan_config:
+        return html_content
+    
+    print_msg("🔧 Applying loan parameters from config.yml...", Colors.BLUE)
+    
+    replacements = {
+        'principal': loan_config['principal']['value'],
+        'interest-rate': loan_config['interest_rate']['value'],
+        'effective-rate': loan_config['effective_rate']['value'],
+        'tilgung': loan_config['tilgung']['value'],
+        'duration': loan_config['duration']['value'],
+        'default-special-payment': loan_config['default_special_payment']['value'],
+    }
+    
+    for field_id, value in replacements.items():
+        # Pattern to match the value attribute in input fields
+        pattern = rf'(<input[^>]*id="{field_id}"[^>]*value=")([^"]*)(")'
+        replacement = rf'\g<1>{value}\g<3>'
+        html_content = re.sub(pattern, replacement, html_content)
+        print_msg(f"   ✓ Set {field_id} = {value}", Colors.GREEN)
+    
+    return html_content
+
+def prepare_files(build_dir, config=None):
     """Copy necessary files to build directory"""
     print_msg("📄 Copying application files...", Colors.BLUE)
     
@@ -64,8 +106,8 @@ def prepare_files(build_dir):
     for js_file in js_files:
         shutil.copy(f"js/{js_file}", build_dir / "js/")
     
-    # Modify index.html to use local D3.js
-    print_msg("🔧 Updating index.html to use local D3.js...", Colors.BLUE)
+    # Modify index.html to use local D3.js and apply config
+    print_msg("🔧 Updating index.html...", Colors.BLUE)
     with open("index.html", "r", encoding="utf-8") as f:
         content = f.read()
     
@@ -74,6 +116,10 @@ def prepare_files(build_dir):
         '<script src="https://d3js.org/d3.v7.min.js"></script>',
         '<script src="lib/d3.v7.min.js"></script>'
     )
+    
+    # Apply loan parameters from config
+    if config and 'loan' in config:
+        content = apply_loan_parameters(content, config['loan'])
     
     with open(build_dir / "index.html", "w", encoding="utf-8") as f:
         f.write(content)
@@ -168,25 +214,39 @@ def main():
     """Main execution function"""
     print_msg("🚀 Starting FTP Upload Process...", Colors.BLUE)
     
-    # Check if .env file exists
-    if not os.path.exists(".env"):
-        print_msg("❌ Error: .env file not found!", Colors.RED)
-        print_msg("📝 Please create a .env file based on env.example", Colors.YELLOW)
+    # Load configuration from config.yml
+    config = load_config("config.yml")
+    
+    # Check if .env file exists, if not try to use config.yml
+    ftp_host = None
+    ftp_user = None
+    ftp_password = None
+    ftp_remote_dir = "/"
+    
+    if os.path.exists(".env"):
+        # Load environment variables from .env
+        print_msg("📋 Loading FTP credentials from .env...", Colors.BLUE)
+        load_dotenv()
+        
+        ftp_host = os.getenv("FTP_HOST")
+        ftp_user = os.getenv("FTP_USER")
+        ftp_password = os.getenv("FTP_PASSWORD")
+        ftp_remote_dir = os.getenv("FTP_REMOTE_DIR", "/")
+    elif config and 'ftp' in config:
+        # Use config.yml as fallback
+        print_msg("📋 Loading FTP credentials from config.yml...", Colors.BLUE)
+        ftp_host = config['ftp'].get('host')
+        ftp_user = config['ftp'].get('user')
+        ftp_password = config['ftp'].get('password')
+        ftp_remote_dir = config['ftp'].get('remote_dir', '/')
+    else:
+        print_msg("❌ Error: No FTP credentials found!", Colors.RED)
+        print_msg("📝 Please create a .env file or configure config.yml", Colors.YELLOW)
         sys.exit(1)
-    
-    # Load environment variables
-    print_msg("📋 Loading FTP credentials from .env...", Colors.BLUE)
-    load_dotenv()
-    
-    # Get FTP credentials
-    ftp_host = os.getenv("FTP_HOST")
-    ftp_user = os.getenv("FTP_USER")
-    ftp_password = os.getenv("FTP_PASSWORD")
-    ftp_remote_dir = os.getenv("FTP_REMOTE_DIR", "/")
     
     # Validate credentials
     if not all([ftp_host, ftp_user, ftp_password]):
-        print_msg("❌ Error: Missing required FTP credentials in .env file!", Colors.RED)
+        print_msg("❌ Error: Missing required FTP credentials!", Colors.RED)
         print_msg("Required: FTP_HOST, FTP_USER, FTP_PASSWORD", Colors.YELLOW)
         sys.exit(1)
     
@@ -202,8 +262,8 @@ def main():
         if not download_d3js(build_dir):
             sys.exit(1)
         
-        # Prepare files
-        prepare_files(build_dir)
+        # Prepare files (with config)
+        prepare_files(build_dir, config)
         
         # Upload to FTP
         if not upload_to_ftp(build_dir, ftp_host, ftp_user, ftp_password, ftp_remote_dir):

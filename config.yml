@@ -1,0 +1,60 @@
+# Annuity Loan Calculator Configuration
+# This file contains default values for loan parameters and deployment settings
+
+# FTP Deployment Configuration
+ftp:
+  host: ftp.example.com
+  user: your_username
+  password: your_password
+  remote_dir: /public_html/calculator
+
+# Default Loan Parameters
+# These values will be injected into index.html during deployment
+loan:
+  # Loan amount in EUR
+  principal:
+    value: 355000
+    min: 10000
+    max: 10000000
+    step: 1000
+  
+  # Nominal interest rate (% per year)
+  interest_rate:
+    value: 4.13
+    min: 0.01
+    max: 15
+    step: 0.01
+  
+  # Effective interest rate (% per year)
+  effective_rate:
+    value: 4.26
+    min: 0.01
+    max: 15
+    step: 0.01
+  
+  # Annual repayment rate (Tilgung, % per year)
+  tilgung:
+    value: 2.00
+    min: 0.01
+    max: 10
+    step: 0.01
+  
+  # Contract duration in years
+  duration:
+    value: 15
+    min: 1
+    max: 40
+    step: 1
+  
+  # Default annual special payment in EUR
+  default_special_payment:
+    value: 17750
+    min: 0
+    max: 1000000
+    step: 1
+    placeholder: "e.g., 17750 (5% of loan)"
+
+# Server Configuration for local development
+server:
+  port: 8000
+  host: 127.0.0.1

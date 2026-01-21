@@ -1,262 +1,129 @@
 # Annuity Loan Calculator
 
-Interactive web-based calculator for modeling annuity loans with real-time visualizations, optimization suggestions, and detailed amortization schedules.
+Interactive loan calculator with real-time visualizations, optimization suggestions, and detailed amortization schedules. Shows the trade-offs between repayment strategies with instant feedback on interest savings and payoff dates.
 
-**Use this when:** You need to understand the true cost of a loan, evaluate special payment strategies, or compare different repayment scenarios.
+**Built to answer:** "What happens if I pay an extra €10k this year?" or "Should I increase my repayment rate or make special payments?"
 
-## Why This Exists
+## Features
 
-Most loan calculators show you a number. This one shows you the trade-offs. Built to answer: "What happens if I pay an extra €10k this year?" or "Should I increase my repayment rate or make special payments?" with instant visual feedback and concrete savings calculations.
+- Real-time calculation as you type
+- Special payment modeling (one-time or recurring)
+- Repayment rate changes at specific dates
+- Interactive D3.js charts (timeline, breakdown, comparison)
+- Optimization suggestions for reducing interest costs
+- Full amortization schedule with CSV export
+- State persistence via localStorage
+- Zero runtime dependencies, no build step
+- Offline-capable with local D3.js
 
-## Key Features
-
-- **Real-time calculation** — Updates as you type, no submit button needed
-- **Special payment modeling** — Add one-time or recurring payments, see exact impact on interest and duration
-- **Repayment rate changes** — Model rate increases/decreases at specific dates
-- **Interactive D3.js charts** — Timeline view, breakdown pie chart, and comparison visualization
-- **Optimization engine** — Automatic suggestions for reducing interest costs
-- **Amortization schedule** — Full month-by-month breakdown with CSV export
-- **State persistence** — Automatically saves inputs to localStorage
-- **Zero dependencies** (runtime) — Pure JavaScript + D3.js, no build step required
-- **Offline-capable** — Download D3.js locally for deployment without CDN
-
-## Architecture
-
-**Pure functional core:** All calculations in `calculator.js` are stateless functions. Interest and principal computations use cent-based arithmetic to avoid floating-point errors.
-
-**Modular design:**
-- `calculator.js` — Financial math (payment schedules, interest calculations)
-- `ui.js` — DOM manipulation, event handling, state management
-- `charts.js` — D3.js visualizations (timeline, breakdown, comparison)
-- `optimizer.js` — Heuristics for payment optimization suggestions
-- `utils.js` — Formatting, date handling, localStorage
-- `animations.js` — UI transitions and loading states
-
-**No build step:** ES6 modules loaded directly by the browser. Cache-busting via query params in development.
-
-## Installation
-
-### Prerequisites
-
-One of:
-- Python 3.x (most systems have this)
-- PHP 7.x+
-- Node.js 14+
-- [uv](https://github.com/astral-sh/uv) (recommended for Python scripts)
-
-### Clone and Run
+## Quick Start
 
 ```bash
 git clone <repository-url>
 cd interest
-./run.sh
+./run.sh  # Opens http://localhost:8000
 ```
 
-The script auto-detects available server tools and opens `http://localhost:8000` in your browser.
+**Windows:** `run.bat`
 
-**Windows:**
-```cmd
-run.bat
-```
+**Requirements:** Python 3.x, PHP 7.x+, or Node.js 14+
 
-**Manual server start:**
-```bash
-# Python
-python3 -m http.server 8000
-
-# PHP
-php -S localhost:8000
-
-# Node.js
-npx http-server -p 8000
-```
-
-## Usage
-
-### Basic Loan Calculation
-
-1. Enter loan parameters (amount, interest rate, repayment rate, duration)
-2. Results update automatically
-3. View timeline chart to see balance progression
-4. Check optimization suggestions for savings opportunities
-
-### Special Payments
-
-**One-time payment:**
-```
-Click "Add Special Payment"
-→ Enter date and amount
-→ See updated payoff date and interest savings
-```
-
-**Annual recurring payments:**
-```
-Set "Default Annual Special Payment" (e.g., 5% of loan)
-→ Click "Generate Annual Payments"
-→ Creates yearly payments for loan duration
-```
-
-### Repayment Rate Changes
-
-Model scenarios like "increase repayment from 2% to 3% after 5 years":
-```
-Click "Add Repayment Change"
-→ Set date and new rate
-→ Monthly payment adjusts from that date forward
-```
-
-### Export Data
-
-```
-Click "Show Table" → "Export CSV"
-→ Downloads full amortization schedule
-```
 
 ## Configuration
 
-### Environment Variables (Deployment Only)
+Edit `config.yml` to set default loan parameters:
 
-For FTP deployment, create `.env` from `env.example`:
-
-```bash
-cp env.example .env
+```yaml
+loan:
+  principal:
+    value: 355000  # Default loan amount (EUR)
+  interest_rate:
+    value: 4.13    # Nominal rate (%)
+  tilgung:
+    value: 2.00    # Annual repayment rate (%)
+  duration:
+    value: 15      # Contract duration (years)
 ```
 
-Edit `.env`:
+Apply changes:
+```bash
+./apply_config.py
+```
+
+**FTP deployment:** Create `.env` with credentials (never commit this file):
 ```bash
 FTP_HOST=ftp.example.com
-FTP_USER=your_username
-FTP_PASSWORD=your_password
+FTP_USER=username
+FTP_PASSWORD=password
 FTP_REMOTE_DIR=/public_html/calculator
 ```
 
-### Application Defaults
-
-Edit `index.html` form inputs to change default values:
-- Principal: `355000` EUR
-- Interest rate: `4.13%`
-- Repayment rate: `2.00%`
-- Duration: `15` years
-
 ## Deployment
 
-### FTP Upload (with local D3.js)
+### GitHub Pages
+
+Enable in Settings → Pages → Source: GitHub Actions, then:
 
 ```bash
-uv run upload.py
+git tag 1.0.0
+git push origin 1.0.0
 ```
 
-This script:
-1. Downloads D3.js v7 locally (removes CDN dependency)
-2. Copies all assets to `.build/`
-3. Uploads to FTP server
-4. Cleans up build directory
+Workflow applies `config.yml`, downloads D3.js locally, and deploys. Triggers on semver tags without `v` prefix (`1.0.0`, `2.1.3`, `1.0.0-beta.1`).
 
-**Why local D3.js?** Some hosting environments block CDN requests or have strict CSP policies. Local copy ensures the calculator works everywhere.
+### FTP
+
+```bash
+./upload.py
+```
+
+Applies config, downloads D3.js, uploads to FTP server specified in `.env`.
 
 ### Static Hosting
 
-Upload these files to any static host:
-```
-index.html
-css/
-js/
-lib/d3.v7.min.js  (if using local D3.js)
-```
+Upload `index.html`, `css/`, `js/`, and optionally `lib/d3.v7.min.js` to any static host (Netlify, Vercel, S3, etc.).
 
-Works on: GitHub Pages, Netlify, Vercel, S3, any web server.
+## Architecture
+
+**Pure functional core:** Calculations in `calculator.js` are stateless. Uses cent-based arithmetic to avoid floating-point errors.
+
+**Modules:**
+- `calculator.js` — Financial math
+- `ui.js` — DOM, events, state
+- `charts.js` — D3.js visualizations
+- `optimizer.js` — Optimization suggestions
+- `utils.js` — Formatting, dates, localStorage
+- `animations.js` — UI transitions
+
+**No build step:** ES6 modules loaded directly by browser.
 
 ## Testing
-
-### Unit Tests
 
 ```bash
 open tests/test-runner.html
 ```
 
-Tests cover:
-- Monthly payment calculations
-- Interest/principal split accuracy
-- Special payment application
-- Repayment rate changes
-- Edge cases (zero interest, full payoff)
+Covers payment calculations, interest/principal splits, special payments, and edge cases. `tests/reference-data.json` contains validated calculations from financial institutions.
 
-**Reference data:** `tests/reference-data.json` contains validated calculations from financial institutions for regression testing.
-
-### Manual Testing
-
-1. Enter known loan parameters from bank documents
-2. Compare monthly payment with bank's calculation
-3. Verify total interest matches bank's estimate
-4. Test special payment scenarios against bank's payoff quotes
-
-## Compatibility
-
-- **Browsers:** Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-- **Mobile:** iOS Safari 14+, Chrome Android 90+
-- **Required features:** ES6 modules, CSS Grid, Fetch API
-- **Screen sizes:** Responsive from 320px to 4K
-
-**IE11 not supported.** Use a modern browser.
+**Compatibility:** Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. Responsive 320px to 4K.
 
 ## Development
 
-### No-cache Server
+**No-cache server:** `uv run server.py` (port 8001, disables browser caching)
 
-```bash
-uv run server.py
-```
+**Code style:**
+- Pure functions in `calculator.js`
+- No global state except localStorage
+- Explicit units in variable names (`amountEur`, `ratePercent`)
+- Cent-based arithmetic for money
+- ISO dates
 
-Runs on port 8001 with `Cache-Control: no-cache` headers for HTML/CSS/JS. Useful when browsers aggressively cache during development.
-
-### File Structure
-
-```
-interest/
-├── index.html          # Main app
-├── css/
-│   ├── styles.css      # Layout, theme, typography
-│   └── components.css  # Form elements, cards, buttons
-├── js/
-│   ├── calculator.js   # Core math
-│   ├── ui.js           # Main controller
-│   ├── charts.js       # D3.js visualizations
-│   ├── optimizer.js    # Suggestion engine
-│   ├── utils.js        # Helpers
-│   └── animations.js   # UI effects
-├── tests/
-│   ├── test-runner.html
-│   ├── calculator.test.js
-│   └── reference-data.json
-├── run.sh              # Cross-platform server launcher
-├── upload.py           # FTP deployment script
-└── server.py           # Dev server with no-cache
-```
-
-### Code Style
-
-- **Pure functions** where possible (especially in `calculator.js`)
-- **No global state** except localStorage for persistence
-- **Explicit units** in variable names (`amountEur`, `ratePercent`, `durationYears`)
-- **Cents internally** for money calculations, convert to EUR at boundaries
-- **ISO dates** for all date handling
-
-## Contributing
-
-1. Run tests before committing: `open tests/test-runner.html`
-2. Verify calculations against reference data
-3. Test on mobile devices (responsive layout)
-4. Check browser console for errors
-5. Keep functions pure in `calculator.js`
-
-**Bug reports:** Include loan parameters that reproduce the issue.
-
-**Feature requests:** Explain the financial scenario you're trying to model.
+**Contributing:** Run tests (`open tests/test-runner.html`), verify calculations against reference data, test on mobile. Bug reports should include loan parameters that reproduce the issue.
 
 ## License
 
-MIT — Use it, modify it, deploy it. No attribution required but appreciated.
+Apache 2.0
 
 ## Disclaimer
 
-This calculator provides estimates for educational purposes. Actual loan terms, fees, and calculations may vary. Always verify with your financial institution before making decisions.
+Estimates for educational purposes. Verify with your financial institution before making decisions.
