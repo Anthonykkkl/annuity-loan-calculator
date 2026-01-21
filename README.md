@@ -45,9 +45,18 @@ loan:
     value: 15      # Contract duration (years)
 ```
 
-Apply changes:
+### Applying Configuration Changes
+
+Configuration changes are **automatically applied** when you run:
+
 ```bash
-./apply_config.py
+./run.sh      # Applies config.yml, then starts local server
+./upload.py   # Applies config.yml to both local and deployed files
+```
+
+You can also apply config manually without starting the server:
+```bash
+./apply-config.py  # Updates index.html with config.yml values
 ```
 
 **FTP deployment:** Create `.env` with credentials (never commit this file):

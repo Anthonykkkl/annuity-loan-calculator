@@ -11,6 +11,16 @@ URL="http://localhost:$PORT/index.html"
 echo "🚀 Starting Annuity Loan Calculator..."
 echo ""
 
+# Always apply config.yml to index.html
+if [ -f "apply-config.py" ]; then
+    echo "🔧 Applying config.yml to index.html..."
+    ./apply-config.py
+    echo ""
+else
+    echo "⚠️  Warning: apply-config.py not found, skipping config application"
+    echo ""
+fi
+
 # Function to kill existing server processes
 kill_existing_servers() {
     echo "🔍 Checking for existing servers on port $PORT..."

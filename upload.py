@@ -14,23 +14,11 @@ import os
 import sys
 import shutil
 import ftplib
-import re
+import subprocess
 from pathlib import Path
 from urllib.request import urlretrieve
 from dotenv import load_dotenv
-import yaml
-
-# ANSI color codes
-class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    NC = '\033[0m'  # No Color
-
-def print_msg(message, color=Colors.BLUE):
-    """Print colored message"""
-    print(f"{color}{message}{Colors.NC}")
+from config_utils import load_config, apply_loan_parameters, print_msg, Colors
 
 def download_d3js(build_dir):
     """Download D3.js library locally"""
@@ -50,44 +38,6 @@ def download_d3js(build_dir):
         print_msg(f"❌ Error downloading D3.js: {e}", Colors.RED)
         return False
 
-def load_config(config_path="config.yml"):
-    """Load configuration from YAML file"""
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        print_msg(f"✅ Loaded configuration from {config_path}", Colors.GREEN)
-        return config
-    except FileNotFoundError:
-        print_msg(f"⚠️  Warning: {config_path} not found, using default values", Colors.YELLOW)
-        return None
-    except yaml.YAMLError as e:
-        print_msg(f"⚠️  Warning: Error parsing YAML: {e}, using default values", Colors.YELLOW)
-        return None
-
-def apply_loan_parameters(html_content, loan_config):
-    """Apply loan parameters to HTML content"""
-    if not loan_config:
-        return html_content
-    
-    print_msg("🔧 Applying loan parameters from config.yml...", Colors.BLUE)
-    
-    replacements = {
-        'principal': loan_config['principal']['value'],
-        'interest-rate': loan_config['interest_rate']['value'],
-        'effective-rate': loan_config['effective_rate']['value'],
-        'tilgung': loan_config['tilgung']['value'],
-        'duration': loan_config['duration']['value'],
-        'default-special-payment': loan_config['default_special_payment']['value'],
-    }
-    
-    for field_id, value in replacements.items():
-        # Pattern to match the value attribute in input fields
-        pattern = rf'(<input[^>]*id="{field_id}"[^>]*value=")([^"]*)(")'
-        replacement = rf'\g<1>{value}\g<3>'
-        html_content = re.sub(pattern, replacement, html_content)
-        print_msg(f"   ✓ Set {field_id} = {value}", Colors.GREEN)
-    
-    return html_content
 
 def prepare_files(build_dir, config=None):
     """Copy necessary files to build directory"""
@@ -258,6 +208,18 @@ def main():
     build_dir.mkdir()
     
     try:
+        # Apply config to local index.html first
+        print_msg("🔧 Applying config to local index.html...", Colors.BLUE)
+        apply_config_script = Path("apply-config.py")
+        if apply_config_script.exists():
+            import subprocess
+            result = subprocess.run([sys.executable, str(apply_config_script)], 
+                                  capture_output=True, text=True)
+            if result.returncode != 0:
+                print_msg(f"⚠️  Warning: Failed to apply config to local file", Colors.YELLOW)
+            else:
+                print_msg("✅ Local index.html updated", Colors.GREEN)
+        
         # Download D3.js
         if not download_d3js(build_dir):
             sys.exit(1)
