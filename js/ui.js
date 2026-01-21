@@ -213,6 +213,18 @@ function setupEventListeners() {
     document.querySelectorAll('.btn').forEach(btn => {
         btn.addEventListener('click', addRippleEffect);
     });
+    
+    // Handle window resize to redraw charts responsively
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (currentSchedule) {
+                console.log('📐 Window resized, redrawing charts...');
+                updateCharts();
+            }
+        }, 250); // Debounce resize events
+    });
 }
 
 /**

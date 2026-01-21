@@ -384,14 +384,30 @@ export function createBreakdownChart(containerId, schedule) {
     
     container.innerHTML = '';
     
-    const margin = { top: 20, right: 30, bottom: 50, left: 80 };
-    const width = container.clientWidth - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    // Responsive dimensions
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
+    
+    const margin = { 
+        top: 20, 
+        right: isMobile ? 10 : 30, 
+        bottom: isMobile ? 40 : 50, 
+        left: isMobile ? 50 : 80 
+    };
+    
+    const containerWidth = Math.min(container.clientWidth, container.offsetWidth);
+    const width = Math.max(200, containerWidth - margin.left - margin.right);
+    const baseHeight = isMobile ? 300 : 400;
+    const height = baseHeight - margin.top - margin.bottom;
     
     const svg = d3.select(container)
         .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('max-width', '100%')
+        .style('height', 'auto')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
     
@@ -405,13 +421,13 @@ export function createBreakdownChart(containerId, schedule) {
         .nice()
         .range([height, 0]);
     
-    // Axes
+    // Axes - responsive
     svg.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(xScale).ticks(10).tickFormat(d => `${Math.floor(d / 12)}y`))
+        .call(d3.axisBottom(xScale).ticks(isMobile ? 5 : 10).tickFormat(d => `${Math.floor(d / 12)}y`))
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -421,9 +437,15 @@ export function createBreakdownChart(containerId, schedule) {
     
     svg.append('g')
         .attr('class', 'y-axis')
-        .call(d3.axisLeft(yScale).ticks(8).tickFormat(d => formatCurrency(d)))
+        .call(d3.axisLeft(yScale).ticks(isMobile ? 5 : 8).tickFormat(d => {
+            if (isMobile) {
+                const value = d / 1000;
+                return value >= 1 ? `€${value.toFixed(0)}k` : formatCurrency(d);
+            }
+            return formatCurrency(d);
+        }))
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -488,29 +510,55 @@ export function createBreakdownChart(containerId, schedule) {
             .text('Principal > Interest');
     }
     
-    // Legend
-    const legend = svg.append('g')
-        .attr('transform', `translate(${width - 150}, 10)`);
+    // Legend - responsive
+    const legend = svg.append('g');
     
-    [
+    const legendItems = [
         { label: 'Principal', color: '#2563eb' },
         { label: 'Interest', color: '#f59e0b' }
-    ].forEach((item, i) => {
-        const row = legend.append('g')
-            .attr('transform', `translate(0, ${i * 20})`);
+    ];
+    
+    if (isMobile) {
+        // Mobile: horizontal legend below chart
+        legend.attr('transform', `translate(0, ${height + 25})`);
         
-        row.append('rect')
-            .attr('width', 12)
-            .attr('height', 12)
-            .attr('fill', item.color);
+        legendItems.forEach((item, i) => {
+            const row = legend.append('g')
+                .attr('transform', `translate(${i * (width / 2)}, 0)`);
+            
+            row.append('rect')
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('fill', item.color);
+            
+            row.append('text')
+                .attr('x', 15)
+                .attr('y', 10)
+                .style('font-size', '10px')
+                .style('fill', '#f8fafc')
+                .text(item.label);
+        });
+    } else {
+        // Desktop: legend on the right
+        legend.attr('transform', `translate(${width - 150}, 10)`);
         
-        row.append('text')
-            .attr('x', 18)
-            .attr('y', 10)
-            .style('font-size', '12px')
-            .style('fill', '#f8fafc')
-            .text(item.label);
-    });
+        legendItems.forEach((item, i) => {
+            const row = legend.append('g')
+                .attr('transform', `translate(0, ${i * 20})`);
+            
+            row.append('rect')
+                .attr('width', 12)
+                .attr('height', 12)
+                .attr('fill', item.color);
+            
+            row.append('text')
+                .attr('x', 18)
+                .attr('y', 10)
+                .style('font-size', '12px')
+                .style('fill', '#f8fafc')
+                .text(item.label);
+        });
+    }
 }
 
 /**
@@ -535,14 +583,30 @@ export function createComparisonChart(containerId, baseline, optimized) {
     
     container.innerHTML = '';
     
-    const margin = { top: 20, right: 30, bottom: 50, left: 80 };
-    const width = container.clientWidth - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    // Responsive dimensions
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
+    
+    const margin = { 
+        top: 20, 
+        right: isMobile ? 10 : 30, 
+        bottom: isMobile ? 40 : 50, 
+        left: isMobile ? 50 : 80 
+    };
+    
+    const containerWidth = Math.min(container.clientWidth, container.offsetWidth);
+    const width = Math.max(200, containerWidth - margin.left - margin.right);
+    const baseHeight = isMobile ? 300 : 400;
+    const height = baseHeight - margin.top - margin.bottom;
     
     const svg = d3.select(container)
         .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('max-width', '100%')
+        .style('height', 'auto')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
     
@@ -557,13 +621,13 @@ export function createComparisonChart(containerId, baseline, optimized) {
         .nice()
         .range([height, 0]);
     
-    // Axes
+    // Axes - responsive
     svg.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(xScale).ticks(10).tickFormat(d => `${Math.floor(d / 12)}y`))
+        .call(d3.axisBottom(xScale).ticks(isMobile ? 5 : 10).tickFormat(d => `${Math.floor(d / 12)}y`))
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -573,9 +637,15 @@ export function createComparisonChart(containerId, baseline, optimized) {
     
     svg.append('g')
         .attr('class', 'y-axis')
-        .call(d3.axisLeft(yScale).ticks(8).tickFormat(d => formatCurrency(d)))
+        .call(d3.axisLeft(yScale).ticks(isMobile ? 5 : 8).tickFormat(d => {
+            if (isMobile) {
+                const value = d / 1000;
+                return value >= 1 ? `€${value.toFixed(0)}k` : formatCurrency(d);
+            }
+            return formatCurrency(d);
+        }))
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -622,33 +692,63 @@ export function createComparisonChart(containerId, baseline, optimized) {
         .attr('opacity', 0.2)
         .attr('d', area);
     
-    // Legend
-    const legend = svg.append('g')
-        .attr('transform', `translate(${width - 150}, 10)`);
+    // Legend - responsive
+    const legend = svg.append('g');
     
-    [
+    const legendItems = [
         { label: 'Current', color: '#9ca3af', dashed: true },
         { label: 'Optimized', color: '#10b981', dashed: false }
-    ].forEach((item, i) => {
-        const row = legend.append('g')
-            .attr('transform', `translate(0, ${i * 20})`);
+    ];
+    
+    if (isMobile) {
+        // Mobile: horizontal legend below chart
+        legend.attr('transform', `translate(0, ${height + 25})`);
         
-        row.append('line')
-            .attr('x1', 0)
-            .attr('x2', 20)
-            .attr('y1', 6)
-            .attr('y2', 6)
-            .attr('stroke', item.color)
-            .attr('stroke-width', 2)
-            .attr('stroke-dasharray', item.dashed ? '5,5' : 'none');
+        legendItems.forEach((item, i) => {
+            const row = legend.append('g')
+                .attr('transform', `translate(${i * (width / 2)}, 0)`);
+            
+            row.append('line')
+                .attr('x1', 0)
+                .attr('x2', 15)
+                .attr('y1', 6)
+                .attr('y2', 6)
+                .attr('stroke', item.color)
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', item.dashed ? '3,3' : 'none');
+            
+            row.append('text')
+                .attr('x', 20)
+                .attr('y', 10)
+                .style('font-size', '10px')
+                .style('fill', '#f8fafc')
+                .text(item.label);
+        });
+    } else {
+        // Desktop: legend on the right
+        legend.attr('transform', `translate(${width - 150}, 10)`);
         
-        row.append('text')
-            .attr('x', 25)
-            .attr('y', 10)
-            .style('font-size', '12px')
-            .style('fill', '#f8fafc')
-            .text(item.label);
-    });
+        legendItems.forEach((item, i) => {
+            const row = legend.append('g')
+                .attr('transform', `translate(0, ${i * 20})`);
+            
+            row.append('line')
+                .attr('x1', 0)
+                .attr('x2', 20)
+                .attr('y1', 6)
+                .attr('y2', 6)
+                .attr('stroke', item.color)
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', item.dashed ? '5,5' : 'none');
+            
+            row.append('text')
+                .attr('x', 25)
+                .attr('y', 10)
+                .style('font-size', '12px')
+                .style('fill', '#f8fafc')
+                .text(item.label);
+        });
+    }
 }
 
 /**

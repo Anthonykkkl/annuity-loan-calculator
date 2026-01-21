@@ -4,31 +4,27 @@ Interactive calculator for annuity loans with real-time calculations and visual 
 
 ## Quick Start
 
-**Local development:**
 ```bash
-./run.sh  # Opens at http://localhost:8000
+./run.sh  # Local dev at http://localhost:8000
 ```
 
 **Deploy to FTP:**
 ```bash
-# One-time setup
-curl -LsSf https://astral.sh/uv/install.sh | sh
-cp env.example .env  # Add your FTP credentials
-
-# Deploy
-uv run upload.py
+curl -LsSf https://astral.sh/uv/install.sh | sh  # One-time
+cp env.example .env  # Add FTP credentials
+uv run upload.py     # Deploy
 ```
 
-Windows: Use `run.bat` for local development.
+Windows: Use `run.bat`
 
 ## What It Does
 
-**Real-time calculations** — Change any value, see results instantly  
-**Special payments** — Add extra payments, see interest savings per payment  
-**Rate changes** — Adjust repayment rate over time, see immediate impact  
-**Visual comparison** — Timeline chart shows your plan vs. baseline  
-**Annual generator** — Create 40 years of payments with one click  
-**Export** — Download amortization table as CSV
+- **Real-time calculations** — Change any value, see results instantly
+- **Special payments** — Add extra payments, see interest savings per payment
+- **Rate changes** — Adjust repayment rate over time, see immediate impact
+- **Visual comparison** — Timeline chart shows your plan vs. baseline
+- **Annual generator** — Create 40 years of payments with one click
+- **Export** — Download amortization table as CSV
 
 ### Example Impact
 
@@ -52,25 +48,33 @@ Result: 8 months earlier, saves €6,531
 Increasing rate = saves interest ✅  
 Decreasing rate = costs more interest ⚠️
 
+## Mobile Optimizations
+
+**Responsive charts** — No horizontal scrolling, legends below charts on mobile  
+**Results-first layout** — Metrics and charts appear before input form on mobile  
+**Optimized readability** — Shorter currency format (€355k), fewer axis ticks, smaller fonts
+
+Desktop: Side-by-side (inputs left, results right)  
+Mobile/Tablet (≤1024px): Stacked (results first, inputs below)
+
 ## Technical Stack
 
 **Frontend:** Vanilla JavaScript (ES6+), D3.js v7  
 **No build tools:** Pure HTML/CSS/JS  
-**Two scripts:** `run.sh` (dev), `upload.py` (deploy)  
 **Zero config:** Scripts use inline dependencies (PEP 723)
 
 ```
 js/
   calculator.js    # Financial calculations
-  charts.js        # D3.js visualizations
-  ui.js            # Event handling
+  charts.js        # D3.js visualizations (responsive)
+  ui.js            # Event handling, resize listeners
   optimizer.js     # Optimization suggestions
   utils.js         # Formatting utilities
   animations.js    # UI animations
 
 css/
-  styles.css       # Layout and typography
-  components.css   # Component styles
+  styles.css       # Layout, responsive reordering
+  components.css   # Component styles, chart responsiveness
 ```
 
 ## FTP Deployment
@@ -79,7 +83,6 @@ The upload script:
 1. Downloads D3.js (~250KB) from CDN
 2. Modifies `index.html` to use local D3.js
 3. Uploads only production files (~600KB total)
-4. Excludes docs, tests, dev scripts
 
 **What gets uploaded:**
 - `index.html` (modified)
@@ -109,7 +112,6 @@ FTP_REMOTE_DIR=/public_html/calculator
 **Page not loading?**
 - Check browser console (F12)
 - Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
-- Ensure server is running
 
 **Charts not showing?**
 - Check if D3.js loaded (Network tab in F12)
@@ -130,6 +132,8 @@ Modern browsers with ES6+ support:
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
+- Mobile Safari (iOS 14+)
+- Samsung Internet
 
 ## Design Philosophy
 
@@ -137,6 +141,7 @@ Minimal, functional design inspired by [kibotu.net/calendar](https://kibotu.net/
 - Monochromatic (green for savings only)
 - Flat (no shadows or gradients)
 - Clear typography, generous whitespace
+- Mobile-first responsive approach
 - Pragmatic solutions over complexity
 
 ## Financial Accuracy
@@ -152,6 +157,7 @@ Calculations tested against banking calculators, Excel PMT function, and real-wo
 - High contrast support
 - Respects `prefers-reduced-motion`
 - Zoom friendly (up to 200%)
+- Touch-friendly targets on mobile (44px minimum)
 
 ## License
 

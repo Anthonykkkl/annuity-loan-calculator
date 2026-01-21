@@ -319,6 +319,15 @@ img, picture, video, iframe, svg {
     .header-title {
         font-size: 2rem;
     }
+    
+    /* Reorder layout for tablet/mobile: results first, then inputs */
+    .input-panel {
+        order: 2;
+    }
+    
+    .results-panel {
+        order: 1;
+    }
 }
 
 /* Mobile */
@@ -348,6 +357,15 @@ img, picture, video, iframe, svg {
         margin-top: var(--spacing-lg);
         margin-bottom: var(--spacing-lg);
         gap: var(--spacing-lg);
+    }
+    
+    /* Reorder layout for mobile: results first, then inputs */
+    .input-panel {
+        order: 2;
+    }
+    
+    .results-panel {
+        order: 1;
     }
     
     /* Reduce padding on cards for mobile */
