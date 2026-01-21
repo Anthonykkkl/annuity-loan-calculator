@@ -10,49 +10,50 @@ ftp:
 
 # Default Loan Parameters
 # These values will be injected into index.html during deployment
+# Configured for a typical 4-room apartment in Berlin (2026)
 loan:
-  # Loan amount in EUR
+  # Loan amount in EUR (typical 4-room apartment in Berlin: 500k-650k)
   principal:
-    value: 355000
+    value: 580000
     min: 10000
     max: 10000000
     step: 1000
   
-  # Nominal interest rate (% per year)
+  # Nominal interest rate (% per year) - current market rates in Germany
   interest_rate:
-    value: 4.13
+    value: 3.75
     min: 0.01
     max: 15
     step: 0.01
   
-  # Effective interest rate (% per year)
+  # Effective interest rate (% per year) - slightly higher than nominal
   effective_rate:
-    value: 4.26
+    value: 3.85
     min: 0.01
     max: 15
     step: 0.01
   
-  # Annual repayment rate (Tilgung, % per year)
+  # Annual repayment rate (Tilgung, % per year) - recommended minimum 2-3%
   tilgung:
-    value: 2.00
+    value: 2.50
     min: 0.01
     max: 10
     step: 0.01
   
-  # Contract duration in years
+  # Contract duration in years (typical Zinsbindung in Germany: 10-20 years)
   duration:
     value: 15
     min: 1
     max: 40
     step: 1
   
-  # Default annual special payment in EUR
+  # Default annual special payment in EUR (5% of loan amount is common)
   default_special_payment:
-    value: 17750
+    value: 29000
     min: 0
     max: 1000000
     step: 1
-    placeholder: "e.g., 17750 (5% of loan)"
+    placeholder: "e.g., 29000 (5% of loan)"
 
 # Server Configuration for local development
 server:
