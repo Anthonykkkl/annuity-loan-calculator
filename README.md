@@ -4,6 +4,8 @@ Interactive loan calculator with real-time visualizations, optimization suggesti
 
 **Built to answer:** "What happens if I pay an extra €10k this year?" or "Should I increase my repayment rate or make special payments?"
 
+![Screenshot](docs/screenshot.png)
+
 ## Features
 
 - Real-time calculation as you type
