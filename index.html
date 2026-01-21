@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Annuity Loan Calculator - Understand your loan. Optimize your future.</title>
+    <meta name="description" content="Calculate and visualize your annuity loan with interactive charts, optimization suggestions, and detailed amortization schedules.">
+    
+    <!-- Cache Control - Prevent caching for development -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Styles (with cache busting) -->
+    <script>
+        const v = new Date().getTime();
+        document.write('<link rel="stylesheet" href="css/styles.css?v=' + v + '">');
+        document.write('<link rel="stylesheet" href="css/components.css?v=' + v + '">');
+    </script>
+    <noscript>
+        <link rel="stylesheet" href="css/styles.css">
+        <link rel="stylesheet" href="css/components.css">
+    </noscript>
+    
+    <!-- D3.js for charts -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Noscript fallback -->
+    <noscript>
+        <style>
+            body { background: #0f172a; color: #f8fafc; }
+            #loading-overlay { display: none !important; }
+            .noscript-warning {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                background: #ef4444;
+                color: white;
+                padding: 1rem;
+                text-align: center;
+                z-index: 10000;
+            }
+        </style>
+        <div class="noscript-warning">
+            ⚠️ JavaScript is required for this calculator to work. Please enable JavaScript in your browser.
+        </div>
+    </noscript>
+</head>
+<body>
+    <!-- Loading Indicator -->
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.98); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+            <div style="font-size: 1.5rem; color: #3b82f6; font-weight: 600;">Loading Calculator...</div>
+            <div style="font-size: 1rem; color: #94a3b8; margin-top: 0.5rem;">This should only take a moment</div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="header-title">Annuity Loan Calculator</h1>
+            <p class="header-tagline">Understand your loan. Optimize your future.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="layout">
+                <!-- Input Panel (Left Sidebar) -->
+                <aside class="input-panel">
+                    <section class="input-section">
+                        <h2 class="section-title">Loan Parameters</h2>
+                        <form id="loan-form" class="loan-form">
+                            <div class="form-group">
+                                <label for="start-date" class="form-label">
+                                    Start Date
+                                    <span class="label-hint">When does the loan begin?</span>
+                                </label>
+                                <input 
+                                    type="date" 
+                                    id="start-date" 
+                                    name="startDate" 
+                                    class="form-input" 
+                                    required
+                                    aria-describedby="start-date-error"
+                                >
+                                <span class="form-error" id="start-date-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="principal" class="form-label">
+                                    Loan Amount
+                                    <span class="label-hint">EUR</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="principal" 
+                                    name="principal" 
+                                    class="form-input" 
+                                    min="10000" 
+                                    max="10000000" 
+                                    step="1000" 
+                                    value="355000"
+                                    required
+                                    aria-describedby="principal-error"
+                                >
+                                <span class="form-error" id="principal-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="interest-rate" class="form-label">
+                                    Nominal Interest Rate
+                                    <span class="label-hint">% per year</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="interest-rate" 
+                                    name="interestRate" 
+                                    class="form-input" 
+                                    min="0.01" 
+                                    max="15" 
+                                    step="0.01" 
+                                    value="4.13"
+                                    required
+                                    aria-describedby="interest-rate-error"
+                                >
+                                <span class="form-error" id="interest-rate-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="effective-rate" class="form-label">
+                                    Effective Interest Rate
+                                    <span class="label-hint">% per year</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="effective-rate" 
+                                    name="effectiveRate" 
+                                    class="form-input" 
+                                    min="0.01" 
+                                    max="15" 
+                                    step="0.01" 
+                                    value="4.26"
+                                    aria-describedby="effective-rate-error"
+                                >
+                                <span class="form-error" id="effective-rate-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tilgung" class="form-label">
+                                    Annual Repayment Rate
+                                    <span class="label-hint">% per year</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="tilgung" 
+                                    name="tilgung" 
+                                    class="form-input" 
+                                    min="0.01" 
+                                    max="10" 
+                                    step="0.01" 
+                                    value="2.00"
+                                    required
+                                    aria-describedby="tilgung-error"
+                                >
+                                <span class="form-error" id="tilgung-error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="duration" class="form-label">
+                                    Contract Duration
+                                    <span class="label-hint">years</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="duration" 
+                                    name="duration" 
+                                    class="form-input" 
+                                    min="1" 
+                                    max="40" 
+                                    step="1" 
+                                    value="15"
+                                    required
+                                    aria-describedby="duration-error"
+                                >
+                                <span class="form-error" id="duration-error"></span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="default-special-payment" class="form-label">
+                                    Default Annual Special Payment
+                                    <span class="label-hint">EUR per year (optional)</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="default-special-payment" 
+                                    name="defaultSpecialPayment" 
+                                    class="form-input" 
+                                    min="0" 
+                                    max="1000000" 
+                                    step="1" 
+                                    value="17750"
+                                    placeholder="e.g., 17750 (5% of loan)"
+                                    aria-describedby="default-special-payment-error"
+                                >
+                                <span class="form-error" id="default-special-payment-error"></span>
+                                <button type="button" id="generate-special-payments-btn" class="btn btn-secondary" style="margin-top: 8px;">
+                                    <span class="btn-icon">⚡</span>
+                                    Generate Annual Payments
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="input-section">
+                        <h2 class="section-title">Repayment Rate Changes</h2>
+                        <p class="section-description">Change your repayment rate at specific dates</p>
+                        <div id="tilgung-changes-list" class="tilgung-changes-list">
+                            <!-- Tilgung changes will be added here dynamically -->
+                        </div>
+                        <button type="button" id="add-tilgung-change" class="btn btn-secondary">
+                            <span class="btn-icon">+</span>
+                            Add Repayment Change
+                        </button>
+                    </section>
+
+                    <section class="input-section">
+                        <h2 class="section-title">Special Payments</h2>
+                        <div id="special-payments-list" class="special-payments-list">
+                            <!-- Special payments will be added here dynamically -->
+                        </div>
+                        <button type="button" id="add-special-payment" class="btn btn-secondary">
+                            <span class="btn-icon">+</span>
+                            Add Special Payment
+                        </button>
+                    </section>
+
+                    <!-- Calculate button hidden - auto-calculates on input change -->
+                    <button type="submit" form="loan-form" id="calculate-btn" class="btn btn-primary btn-large" style="display: none;">
+                        Calculate
+                    </button>
+                    
+                    <div class="auto-calc-indicator">
+                        <span class="indicator-icon">⚡</span>
+                        <span class="indicator-text">Auto-calculating as you type</span>
+                    </div>
+                </aside>
+
+                <!-- Results Panel (Right Side) -->
+                <section class="results-panel">
+                    <!-- Hero Metrics -->
+                    <div class="hero-metrics" id="hero-metrics">
+                        <div class="metric-card metric-card-hero">
+                            <div class="metric-label">Total Interest Paid</div>
+                            <div class="metric-value" id="total-interest">—</div>
+                            <div class="metric-savings" id="interest-savings" style="display: none;">
+                                <span class="savings-icon">↓</span>
+                                <span class="savings-amount" id="interest-savings-amount">—</span>
+                                <span class="savings-label">saved</span>
+                            </div>
+                            <div class="metric-context" id="interest-context">—</div>
+                        </div>
+                        <div class="metric-card metric-card-hero">
+                            <div class="metric-label">Time Saved</div>
+                            <div class="metric-value" id="time-saved">—</div>
+                            <div class="metric-context" id="time-saved-context">—</div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Metrics -->
+                    <div class="secondary-metrics" id="secondary-metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Monthly Payment</div>
+                            <div class="metric-value metric-value-medium" id="monthly-payment">—</div>
+                            <div class="metric-comparison" id="monthly-payment-comparison" style="display: none;">
+                                <span class="comparison-arrow">↑</span>
+                                <span id="monthly-payment-increase">—</span>
+                                <span class="comparison-context">vs. initial <span id="monthly-payment-baseline">—</span></span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Total Amount Paid</div>
+                            <div class="metric-value metric-value-medium" id="total-paid">—</div>
+                            <div class="metric-comparison" id="total-paid-comparison" style="display: none;">
+                                <span class="comparison-arrow">↓</span>
+                                <span id="total-paid-savings">—</span>
+                                <span class="comparison-context">vs. baseline <span id="total-paid-baseline">—</span></span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Special Payments</div>
+                            <div class="metric-value metric-value-medium" id="total-special-payments">—</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Payoff Date</div>
+                            <div class="metric-value metric-value-medium" id="payoff-date">—</div>
+                            <div class="metric-comparison" id="payoff-date-comparison" style="display: none;">
+                                <span class="comparison-label">vs.</span>
+                                <span class="comparison-value" id="payoff-date-baseline">—</span>
+                                <span class="comparison-label">without special payments</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Charts -->
+                    <div class="chart-container">
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" data-chart="timeline">Timeline</button>
+                            <button class="chart-tab" data-chart="breakdown">Breakdown</button>
+                            <button class="chart-tab" data-chart="comparison">Comparison</button>
+                        </div>
+                        <div class="chart-content">
+                            <div id="chart-timeline" class="chart active"></div>
+                            <div id="chart-breakdown" class="chart"></div>
+                            <div id="chart-comparison" class="chart"></div>
+                        </div>
+                    </div>
+
+                    <!-- Optimization Suggestions -->
+                    <div class="optimization-section" id="optimization-section">
+                        <h2 class="section-title">Optimization Suggestions</h2>
+                        <div id="optimization-list" class="optimization-list">
+                            <!-- Suggestions will be added here dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Amortization Table -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h2 class="section-title">Amortization Schedule</h2>
+                            <div class="table-actions">
+                                <button id="export-csv" class="btn btn-secondary btn-small">Export CSV</button>
+                                <button id="toggle-table" class="btn btn-secondary btn-small">Show Table</button>
+                            </div>
+                        </div>
+                        <div id="table-container" class="table-container collapsed">
+                            <table id="amortization-table" class="amortization-table">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Date</th>
+                                        <th>Payment</th>
+                                        <th>Interest</th>
+                                        <th>Principal</th>
+                                        <th>Special Payment</th>
+                                        <th>Remaining Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <!-- Table rows will be added here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">Built with excellence. Calculations are estimates — always verify with your bank.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Module - Only load the main UI module -->
+    <script type="module">
+        console.log('📦 Loading modules...');
+        
+        // Import and initialize (with cache busting)
+        const timestamp = new Date().getTime();
+        import(`./js/ui.js?v=${timestamp}`)
+            .then(() => {
+                console.log('✅ UI module loaded successfully');
+            })
+            .catch(error => {
+                console.error('❌ Failed to load UI module:', error);
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.innerHTML = `
+                        <div style="text-align: center; color: #ef4444;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">❌</div>
+                            <div style="font-size: 1.5rem; font-weight: 600; color: #f8fafc;">Failed to Load</div>
+                            <div style="font-size: 1rem; margin-top: 0.5rem; color: #cbd5e1;">${error.message}</div>
+                            <div style="font-size: 0.875rem; margin-top: 0.5rem; color: #94a3b8;">Try the simple version instead</div>
+                            <button onclick="location.href='index-simple.html'" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem;">Open Simple Version</button>
+                            <button onclick="location.reload()" style="margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #475569; color: white; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem;">Reload Page</button>
+                        </div>
+                    `;
+                }
+            });
+    </script>
+    
+    <!-- Fallback: Hide loading overlay after 5 seconds if init hasn't completed -->
+    <script>
+        setTimeout(function() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+                console.warn('⚠️  Loading timeout - forcing overlay removal');
+                loadingOverlay.innerHTML = `
+                    <div style="text-align: center; color: #fbbf24;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                        <div style="font-size: 1.5rem; font-weight: 600; color: #f8fafc;">Loading is taking longer than expected</div>
+                        <div style="font-size: 1rem; margin-top: 0.5rem; color: #cbd5e1;">The module version may have issues. Try the simple version instead.</div>
+                        <button onclick="location.href='index-simple.html'" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #10b981; color: white; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem;">Open Simple Version</button>
+                        <button onclick="location.reload()" style="margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem;">Reload Page</button>
+                        <button onclick="document.getElementById('loading-overlay').style.display='none'" style="margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #475569; color: white; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem;">Continue Anyway</button>
+                    </div>
+                `;
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

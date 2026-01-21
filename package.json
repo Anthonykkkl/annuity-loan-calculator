@@ -1,0 +1,22 @@
+{
+  "name": "annuity-loan-calculator",
+  "version": "1.0.0",
+  "description": "Interactive annuity loan calculator with visualizations and optimization suggestions",
+  "scripts": {
+    "start": "python3 -m http.server 8000 || python -m SimpleHTTPServer 8000 || php -S localhost:8000 || npx http-server -p 8000",
+    "dev": "python3 -m http.server 8000",
+    "test": "open tests/test-runner.html"
+  },
+  "keywords": [
+    "loan",
+    "calculator",
+    "annuity",
+    "mortgage",
+    "finance",
+    "visualization",
+    "d3js"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module"
+}

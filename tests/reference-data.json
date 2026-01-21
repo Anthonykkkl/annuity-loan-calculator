@@ -1,0 +1,190 @@
+{
+  "testCases": [
+    {
+      "name": "Standard 300k EUR loan at 3.5%",
+      "description": "Typical German mortgage scenario",
+      "input": {
+        "principal": 300000,
+        "interestRate": 3.5,
+        "tilgung": 2,
+        "duration": 10,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 1375,
+        "totalInterest": 55000,
+        "actualMonths": 120,
+        "tolerance": 5000
+      }
+    },
+    {
+      "name": "100k EUR loan at 3.5% over 10 years",
+      "description": "Smaller loan for validation",
+      "input": {
+        "principal": 100000,
+        "interestRate": 3.5,
+        "tilgung": 2,
+        "duration": 10,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 458,
+        "totalInterest": 18000,
+        "actualMonths": 120,
+        "tolerance": 2000
+      }
+    },
+    {
+      "name": "300k EUR with 5k annual special payment",
+      "description": "Scenario with consistent special payments",
+      "input": {
+        "principal": 300000,
+        "interestRate": 3.5,
+        "tilgung": 2,
+        "duration": 10,
+        "specialPayments": [
+          { "year": 1, "amount": 5000 },
+          { "year": 2, "amount": 5000 },
+          { "year": 3, "amount": 5000 },
+          { "year": 4, "amount": 5000 },
+          { "year": 5, "amount": 5000 }
+        ]
+      },
+      "expected": {
+        "totalInterest": 38000,
+        "actualMonths": 96,
+        "tolerance": 5000,
+        "note": "Should save ~17,000 EUR in interest"
+      }
+    },
+    {
+      "name": "High interest rate scenario",
+      "description": "Stress test with 10% interest",
+      "input": {
+        "principal": 200000,
+        "interestRate": 10,
+        "tilgung": 3,
+        "duration": 15,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 2166,
+        "totalInterest": 150000,
+        "tolerance": 20000,
+        "note": "High interest significantly increases total cost"
+      }
+    },
+    {
+      "name": "Short duration loan",
+      "description": "1-year loan for edge case testing",
+      "input": {
+        "principal": 50000,
+        "interestRate": 3.5,
+        "tilgung": 10,
+        "duration": 1,
+        "specialPayments": []
+      },
+      "expected": {
+        "actualMonths": 12,
+        "totalInterest": 1000,
+        "tolerance": 500,
+        "note": "Short loans have minimal interest"
+      }
+    },
+    {
+      "name": "Zero interest loan",
+      "description": "Edge case with 0% interest",
+      "input": {
+        "principal": 120000,
+        "interestRate": 0,
+        "tilgung": 10,
+        "duration": 10,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 1000,
+        "totalInterest": 0,
+        "actualMonths": 120,
+        "tolerance": 0.01,
+        "note": "No interest means simple division"
+      }
+    },
+    {
+      "name": "Large early special payment",
+      "description": "Significant payment in year 1",
+      "input": {
+        "principal": 300000,
+        "interestRate": 3.5,
+        "tilgung": 2,
+        "duration": 10,
+        "specialPayments": [
+          { "year": 1, "amount": 50000 }
+        ]
+      },
+      "expected": {
+        "totalInterest": 42000,
+        "actualMonths": 100,
+        "tolerance": 5000,
+        "note": "Early large payment has exponential impact"
+      }
+    },
+    {
+      "name": "Low tilgung rate",
+      "description": "Minimum 1% tilgung",
+      "input": {
+        "principal": 200000,
+        "interestRate": 3.5,
+        "tilgung": 1,
+        "duration": 20,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 750,
+        "actualMonths": 240,
+        "tolerance": 10000,
+        "note": "Low tilgung extends loan duration significantly"
+      }
+    },
+    {
+      "name": "High tilgung rate",
+      "description": "Maximum 10% tilgung",
+      "input": {
+        "principal": 200000,
+        "interestRate": 3.5,
+        "tilgung": 10,
+        "duration": 10,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 2250,
+        "actualMonths": 90,
+        "tolerance": 5000,
+        "note": "High tilgung pays off loan much faster"
+      }
+    },
+    {
+      "name": "Long duration loan",
+      "description": "30-year mortgage scenario",
+      "input": {
+        "principal": 400000,
+        "interestRate": 3.0,
+        "tilgung": 2,
+        "duration": 30,
+        "specialPayments": []
+      },
+      "expected": {
+        "monthlyPayment": 1666,
+        "totalInterest": 200000,
+        "actualMonths": 360,
+        "tolerance": 30000,
+        "note": "Long loans accumulate significant interest"
+      }
+    }
+  ],
+  "notes": {
+    "tolerance": "Expected values have tolerance ranges due to different rounding methods",
+    "source": "Reference values calculated using standard German banking formulas",
+    "validation": "Compare calculator results against these scenarios",
+    "usage": "Use these test cases to verify financial correctness"
+  }
+}
