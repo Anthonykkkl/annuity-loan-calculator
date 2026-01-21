@@ -219,7 +219,10 @@
                     </section>
 
                     <section class="input-section">
-                        <h2 class="section-title">Repayment Rate Changes</h2>
+                        <h2 class="section-title">
+                            Repayment Rate Changes
+                            <span id="tilgung-changes-count" class="count-badge">0</span>
+                        </h2>
                         <p class="section-description">Change your repayment rate at specific dates</p>
                         <div id="tilgung-changes-list" class="tilgung-changes-list">
                             <!-- Tilgung changes will be added here dynamically -->
@@ -231,7 +234,10 @@
                     </section>
 
                     <section class="input-section">
-                        <h2 class="section-title">Special Payments</h2>
+                        <h2 class="section-title">
+                            Special Payments
+                            <span id="special-payments-count" class="count-badge">0</span>
+                        </h2>
                         <div id="special-payments-list" class="special-payments-list">
                             <!-- Special payments will be added here dynamically -->
                         </div>
@@ -250,6 +256,11 @@
                         <span class="indicator-icon">⚡</span>
                         <span class="indicator-text">Auto-calculating as you type</span>
                     </div>
+                    
+                    <button type="button" id="reset-btn" class="btn btn-reset" title="Reset to default values and clear saved data">
+                        <span class="btn-icon">🔄</span>
+                        Reset to Defaults
+                    </button>
                 </aside>
 
                 <!-- Results Panel (Right Side) -->

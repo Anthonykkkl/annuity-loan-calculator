@@ -134,6 +134,25 @@
     background: rgba(30, 41, 59, 0.8);
 }
 
+.btn-reset {
+    width: 100%;
+    background: rgba(239, 68, 68, 0.1);
+    backdrop-filter: blur(5px);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    margin-top: var(--spacing-md);
+}
+
+.btn-reset:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+}
+
+.btn-reset:active:not(:disabled) {
+    background: rgba(239, 68, 68, 0.3);
+}
+
 .btn-large {
     width: 100%;
     padding: var(--spacing-md) var(--spacing-xl);
@@ -336,13 +355,22 @@
     background: rgba(15, 23, 42, 0.8);
 }
 
-.special-payment-input[type="date"] {
+.special-payment-input[type="date"],
+.form-input[type="date"] {
     color: var(--color-text-primary);
-    color-scheme: dark;
 }
 
-.special-payment-input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.8);
+/* Calendar icon styling - make it white/bright */
+.special-payment-input[type="date"]::-webkit-calendar-picker-indicator,
+.form-input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(100%) brightness(100%);
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.special-payment-input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.form-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
 }
 
 .btn-remove {
@@ -496,6 +524,8 @@
 .chart svg {
     max-width: 100%;
     height: auto;
+    display: block;
+    width: 100%;
 }
 
 .chart-tabs {
@@ -800,13 +830,14 @@
     }
     
     .chart {
-        height: 300px;
+        height: auto;
+        min-height: 300px;
         width: 100%;
         max-width: 100%;
     }
     
     .chart-content {
-        min-height: 300px;
+        min-height: 350px; /* Extra space for mobile legend below chart */
         max-width: 100%;
         overflow: hidden;
     }

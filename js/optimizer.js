@@ -131,7 +131,7 @@ function analyzeAnnualSpecialPayment(baselineParams, baselineStats, annualAmount
     const specialPayments = [...(baselineParams.specialPayments || [])];
     const startDate = new Date();
     
-    // Add annual payments for the duration of the loan
+    // Add annual payments, but only while there's still a balance to pay off
     const maxYears = Math.min(baselineParams.duration, 20); // Cap at 20 years
     for (let year = 1; year <= maxYears; year++) {
         const paymentDate = new Date(startDate);
@@ -140,6 +140,23 @@ function analyzeAnnualSpecialPayment(baselineParams, baselineStats, annualAmount
             date: paymentDate,
             amount: annualAmount
         });
+        
+        // Check if loan would be paid off with these payments
+        const testSchedule = generateAmortizationSchedule(
+            baselineParams.principal,
+            baselineParams.interestRate,
+            baselineParams.tilgung,
+            baselineParams.duration,
+            specialPayments
+        );
+        
+        const lastPayment = testSchedule[testSchedule.length - 1];
+        const yearsToPayoff = testSchedule.length / 12;
+        
+        // If loan is paid off before the next payment would be due, stop generating
+        if (yearsToPayoff < year + 1) {
+            break;
+        }
     }
     
     const modifiedParams = {

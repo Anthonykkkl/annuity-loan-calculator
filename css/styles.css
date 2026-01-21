@@ -244,6 +244,30 @@ img, picture, video, iframe, svg {
     margin-bottom: var(--spacing-lg);
     color: var(--color-text-primary);
     letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 var(--spacing-xs);
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--color-accent);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius-full);
+    line-height: 1;
+}
+
+.count-badge.has-items {
+    background: rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.5);
 }
 
 /* ===================================

@@ -32,16 +32,35 @@ export function createTimelineChart(containerId, schedule, options = {}) {
     // Clear existing chart
     container.innerHTML = '';
     
-    // Set up dimensions
-    const margin = { top: 20, right: hasBaseline ? 150 : 30, bottom: 50, left: 80 };
-    const width = container.clientWidth - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    // Responsive dimensions based on viewport width
+    const isMobile = window.innerWidth <= 768;
+    const isSmallMobile = window.innerWidth <= 480;
     
-    // Create SVG
+    // Set up dimensions with responsive margins
+    const margin = { 
+        top: 20, 
+        right: isMobile ? 10 : (hasBaseline ? 150 : 30), 
+        bottom: isMobile ? 40 : 50, 
+        left: isMobile ? 50 : 80 
+    };
+    
+    // Ensure container width is properly constrained
+    const containerWidth = Math.min(container.clientWidth, container.offsetWidth);
+    const width = Math.max(200, containerWidth - margin.left - margin.right);
+    
+    // Responsive height
+    const baseHeight = isMobile ? 300 : 400;
+    const height = baseHeight - margin.top - margin.bottom;
+    
+    // Create SVG with viewBox for better responsiveness
     const svg = d3.select(container)
         .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('max-width', '100%')
+        .style('height', 'auto')
         .append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
     
@@ -61,21 +80,28 @@ export function createTimelineChart(containerId, schedule, options = {}) {
         .nice()
         .range([height, 0]);
     
-    // Axes
+    // Axes - responsive tick counts
     const xAxis = d3.axisBottom(xScale)
-        .ticks(10)
+        .ticks(isMobile ? 5 : 10)
         .tickFormat(d => `${Math.floor(d / 12)}y`);
     
     const yAxis = d3.axisLeft(yScale)
-        .ticks(8)
-        .tickFormat(d => formatCurrency(d));
+        .ticks(isMobile ? 5 : 8)
+        .tickFormat(d => {
+            // Shorter format for mobile
+            if (isMobile) {
+                const value = d / 1000;
+                return value >= 1 ? `€${value.toFixed(0)}k` : formatCurrency(d);
+            }
+            return formatCurrency(d);
+        });
     
     svg.append('g')
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height})`)
         .call(xAxis)
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -87,7 +113,7 @@ export function createTimelineChart(containerId, schedule, options = {}) {
         .attr('class', 'y-axis')
         .call(yAxis)
         .selectAll('text')
-        .style('font-size', '12px')
+        .style('font-size', isMobile ? '10px' : '12px')
         .style('fill', '#cbd5e1');
     
     // Style axis lines and ticks
@@ -198,11 +224,7 @@ export function createTimelineChart(containerId, schedule, options = {}) {
         .duration(500)
         .attr('r', 6);
     
-    // Legend
-    const legend = svg.append('g')
-        .attr('class', 'legend')
-        .attr('transform', `translate(${width - 150}, 10)`);
-    
+    // Legend - responsive positioning
     const legendData = [
         { label: 'Principal', color: '#2563eb', type: 'area' },
         { label: 'Interest', color: '#f59e0b', type: 'area' },
@@ -213,41 +235,90 @@ export function createTimelineChart(containerId, schedule, options = {}) {
         legendData.push({ label: 'Without Special Payments', color: '#94a3b8', type: 'dashed' });
     }
     
-    legendData.forEach((item, i) => {
-        const legendRow = legend.append('g')
-            .attr('transform', `translate(0, ${i * 20})`);
+    // Position legend based on screen size
+    const legend = svg.append('g')
+        .attr('class', 'legend');
+    
+    if (isMobile) {
+        // On mobile, place legend below the chart
+        legend.attr('transform', `translate(0, ${height + 25})`);
         
-        if (item.type === 'circle') {
-            legendRow.append('circle')
-                .attr('cx', 6)
-                .attr('cy', 6)
-                .attr('r', 5)
-                .attr('fill', item.color)
-                .attr('stroke', '#fff')
-                .attr('stroke-width', 1);
-        } else if (item.type === 'dashed') {
-            legendRow.append('line')
-                .attr('x1', 0)
-                .attr('y1', 6)
-                .attr('x2', 12)
-                .attr('y2', 6)
-                .attr('stroke', item.color)
-                .attr('stroke-width', 2)
-                .attr('stroke-dasharray', '3,3');
-        } else {
-            legendRow.append('rect')
-                .attr('width', 12)
-                .attr('height', 12)
-                .attr('fill', item.color);
-        }
+        // Horizontal layout for mobile
+        legendData.forEach((item, i) => {
+            const legendRow = legend.append('g')
+                .attr('transform', `translate(${i * (width / legendData.length)}, 0)`);
+            
+            if (item.type === 'circle') {
+                legendRow.append('circle')
+                    .attr('cx', 6)
+                    .attr('cy', 6)
+                    .attr('r', 4)
+                    .attr('fill', item.color)
+                    .attr('stroke', '#fff')
+                    .attr('stroke-width', 1);
+            } else if (item.type === 'dashed') {
+                legendRow.append('line')
+                    .attr('x1', 0)
+                    .attr('y1', 6)
+                    .attr('x2', 10)
+                    .attr('y2', 6)
+                    .attr('stroke', item.color)
+                    .attr('stroke-width', 2)
+                    .attr('stroke-dasharray', '2,2');
+            } else {
+                legendRow.append('rect')
+                    .attr('width', 10)
+                    .attr('height', 10)
+                    .attr('fill', item.color);
+            }
+            
+            legendRow.append('text')
+                .attr('x', 15)
+                .attr('y', 10)
+                .style('font-size', isSmallMobile ? '9px' : '10px')
+                .style('fill', '#f8fafc')
+                .text(isSmallMobile && item.label.length > 10 ? item.label.substring(0, 8) + '...' : item.label);
+        });
+    } else {
+        // Desktop: place legend on the right
+        legend.attr('transform', `translate(${width - 150}, 10)`);
         
-        legendRow.append('text')
-            .attr('x', 18)
-            .attr('y', 10)
-            .style('font-size', '12px')
-            .style('fill', '#f8fafc')
-            .text(item.label);
-    });
+        legendData.forEach((item, i) => {
+            const legendRow = legend.append('g')
+                .attr('transform', `translate(0, ${i * 20})`);
+            
+            if (item.type === 'circle') {
+                legendRow.append('circle')
+                    .attr('cx', 6)
+                    .attr('cy', 6)
+                    .attr('r', 5)
+                    .attr('fill', item.color)
+                    .attr('stroke', '#fff')
+                    .attr('stroke-width', 1);
+            } else if (item.type === 'dashed') {
+                legendRow.append('line')
+                    .attr('x1', 0)
+                    .attr('y1', 6)
+                    .attr('x2', 12)
+                    .attr('y2', 6)
+                    .attr('stroke', item.color)
+                    .attr('stroke-width', 2)
+                    .attr('stroke-dasharray', '3,3');
+            } else {
+                legendRow.append('rect')
+                    .attr('width', 12)
+                    .attr('height', 12)
+                    .attr('fill', item.color);
+            }
+            
+            legendRow.append('text')
+                .attr('x', 18)
+                .attr('y', 10)
+                .style('font-size', '12px')
+                .style('fill', '#f8fafc')
+                .text(item.label);
+        });
+    }
     
     // Tooltip
     const tooltip = d3.select('body')

@@ -85,8 +85,11 @@ function init() {
         console.log('📦 Loading saved data...');
         loadSavedData();
         
-        // Don't auto-generate special payments - let user add them manually
-        // User can use the "Default Annual Special Payment" field to generate them
+        // Auto-generate default special payments if none exist
+        if (specialPayments.length === 0) {
+            console.log('📅 Auto-generating default special payments...');
+            generateDefaultSpecialPaymentsFromStartToToday();
+        }
         
         // Set up event listeners
         console.log('🎯 Setting up event listeners...');
@@ -184,6 +187,12 @@ function setupEventListeners() {
             generateDefaultSpecialPayments();
             calculate();
         });
+    }
+    
+    // Reset button
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetToDefaults);
     }
     
     // Chart tabs
@@ -834,6 +843,17 @@ function renderSpecialPayments() {
     const container = document.getElementById('special-payments-list');
     container.innerHTML = '';
     
+    // Update counter badge
+    const countBadge = document.getElementById('special-payments-count');
+    if (countBadge) {
+        countBadge.textContent = specialPayments.length;
+        if (specialPayments.length > 0) {
+            countBadge.classList.add('has-items');
+        } else {
+            countBadge.classList.remove('has-items');
+        }
+    }
+    
     // Calculate interest savings for each special payment (if we have current params)
     let savingsMap = new Map();
     if (currentParams && specialPayments.length > 0) {
@@ -955,6 +975,17 @@ function renderTilgungChanges() {
     
     container.innerHTML = '';
     
+    // Update counter badge
+    const countBadge = document.getElementById('tilgung-changes-count');
+    if (countBadge) {
+        countBadge.textContent = tilgungChanges.length;
+        if (tilgungChanges.length > 0) {
+            countBadge.classList.add('has-items');
+        } else {
+            countBadge.classList.remove('has-items');
+        }
+    }
+    
     // Calculate interest savings for each repayment change (if we have current params)
     let savingsMap = new Map();
     if (currentParams && tilgungChanges.length > 0) {
@@ -1062,22 +1093,135 @@ function generateDefaultSpecialPayments() {
     
     if (!defaultAmount || defaultAmount <= 0) return;
     
-    console.log(`📅 Generating default special payments: ${defaultAmount} EUR annually for ${duration} years`);
+    console.log(`📅 Generating default special payments: ${defaultAmount} EUR annually (stopping when loan is paid off)`);
     
-    // Generate annual special payments
+    // Get current form data to simulate the loan
+    const formData = getFormData();
+    
+    // Generate annual special payments, but only while there's still a balance
+    const tempSpecialPayments = [];
     for (let year = 1; year <= duration; year++) {
         const paymentDate = new Date(startDate);
         paymentDate.setFullYear(startDate.getFullYear() + year);
         
-        specialPayments.push({
+        tempSpecialPayments.push({
             id: generateId(),
             date: paymentDate,
             amount: defaultAmount
         });
+        
+        // Check if loan would be paid off with these payments
+        const testSchedule = generateAmortizationSchedule(
+            formData.principal,
+            formData.interestRate,
+            formData.tilgung,
+            formData.duration,
+            tempSpecialPayments,
+            startDate,
+            tilgungChanges
+        );
+        
+        const lastPayment = testSchedule[testSchedule.length - 1];
+        const yearsToPayoff = testSchedule.length / 12;
+        
+        // If loan is paid off before the next payment would be due, stop generating
+        if (yearsToPayoff < year + 1) {
+            console.log(`💡 Loan will be paid off in ${yearsToPayoff.toFixed(1)} years, stopping at ${year} payments`);
+            break;
+        }
     }
+    
+    // Add all the generated payments to the actual list
+    specialPayments.push(...tempSpecialPayments);
     
     console.log(`✅ Generated ${specialPayments.length} default special payments`);
     renderSpecialPayments();
+}
+
+/**
+ * Generates default special payments from start date until today (on January 31st each year)
+ */
+function generateDefaultSpecialPaymentsFromStartToToday() {
+    const defaultAmountInput = document.getElementById('default-special-payment');
+    const startDateInput = document.getElementById('start-date');
+    
+    if (!defaultAmountInput || !startDateInput) return;
+    
+    const defaultAmount = parseFloat(defaultAmountInput.value);
+    const startDate = new Date(startDateInput.value);
+    const today = new Date();
+    
+    if (!defaultAmount || defaultAmount <= 0) return;
+    
+    console.log(`📅 Generating special payments from ${startDate.toISOString().split('T')[0]} to ${today.toISOString().split('T')[0]}`);
+    
+    // Get current form data to simulate the loan
+    const formData = getFormData();
+    
+    // Start from the first January 31st after the start date
+    let currentYear = startDate.getFullYear();
+    const startMonth = startDate.getMonth(); // 0-indexed (0 = January)
+    
+    // If start date is after January 31st, start from next year's January 31st
+    if (startMonth > 0 || (startMonth === 0 && startDate.getDate() > 31)) {
+        currentYear++;
+    }
+    
+    const tempSpecialPayments = [];
+    
+    // Generate payments on January 31st of each year until today
+    while (true) {
+        const paymentDate = new Date(currentYear, 0, 31); // Month 0 = January, Day 31
+        
+        // Stop if payment date is in the future
+        if (paymentDate > today) {
+            break;
+        }
+        
+        // Stop if payment date is before start date
+        if (paymentDate < startDate) {
+            currentYear++;
+            continue;
+        }
+        
+        tempSpecialPayments.push({
+            id: generateId(),
+            date: paymentDate,
+            amount: defaultAmount
+        });
+        
+        // Check if loan would be paid off with these payments
+        const testSchedule = generateAmortizationSchedule(
+            formData.principal,
+            formData.interestRate,
+            formData.tilgung,
+            formData.duration,
+            tempSpecialPayments,
+            startDate,
+            tilgungChanges
+        );
+        
+        const lastPayment = testSchedule[testSchedule.length - 1];
+        
+        // If loan is already paid off, stop generating
+        if (lastPayment.date < paymentDate) {
+            // Remove the last payment since the loan was already paid off before it
+            tempSpecialPayments.pop();
+            console.log(`💡 Loan will be paid off before ${paymentDate.toISOString().split('T')[0]}, stopping`);
+            break;
+        }
+        
+        currentYear++;
+    }
+    
+    // Add all the generated payments to the actual list
+    specialPayments.push(...tempSpecialPayments);
+    
+    console.log(`✅ Auto-generated ${specialPayments.length} special payments on January 31st from start date to today`);
+    
+    if (specialPayments.length > 0) {
+        renderSpecialPayments();
+    }
 }
 
 /**
@@ -1136,6 +1280,67 @@ function loadSavedData() {
             renderSpecialPayments();
         }
     }
+}
+
+/**
+ * Resets all form data to default values and clears localStorage
+ */
+function resetToDefaults() {
+    // Confirm with user
+    const confirmed = confirm(
+        'Are you sure you want to reset all values to defaults?\n\n' +
+        'This will:\n' +
+        '• Clear all saved data\n' +
+        '• Remove all special payments\n' +
+        '• Remove all repayment rate changes\n' +
+        '• Reset all fields to default values'
+    );
+    
+    if (!confirmed) return;
+    
+    console.log('🔄 Resetting to default values...');
+    
+    // Clear localStorage
+    try {
+        localStorage.removeItem('loanCalculatorData');
+        console.log('✅ Cleared saved data from localStorage');
+    } catch (error) {
+        console.warn('Failed to clear localStorage:', error);
+    }
+    
+    // Reset form to default values
+    document.getElementById('start-date').value = '2023-12-01';
+    document.getElementById('principal').value = '355000';
+    document.getElementById('interest-rate').value = '4.13';
+    document.getElementById('effective-rate').value = '4.26';
+    document.getElementById('tilgung').value = '2.00';
+    document.getElementById('duration').value = '15';
+    document.getElementById('default-special-payment').value = '17750';
+    
+    // Clear special payments
+    specialPayments = [];
+    
+    // Clear repayment changes
+    tilgungChanges = [];
+    renderTilgungChanges();
+    
+    // Auto-generate default special payments from start date to today
+    generateDefaultSpecialPaymentsFromStartToToday();
+    
+    // Clear any error states
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.classList.remove('error');
+    });
+    document.querySelectorAll('.form-error').forEach(errorEl => {
+        errorEl.textContent = '';
+    });
+    
+    // Recalculate with default values
+    calculate();
+    
+    // Show success message with animation
+    flashHighlight(document.getElementById('reset-btn'));
+    console.log('✅ Reset complete!');
 }
 
 // Initialize when DOM is ready
