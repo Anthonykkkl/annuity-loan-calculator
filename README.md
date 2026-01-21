@@ -36,13 +36,40 @@ Edit `config.yml` to set default loan parameters:
 ```yaml
 loan:
   principal:
-    value: 355000  # Default loan amount (EUR)
+    value: 580000  # Default loan amount (EUR)
+    min: 10000
+    max: 10000000
+    step: 1000
+  
   interest_rate:
-    value: 4.13    # Nominal rate (%)
+    value: 3.75    # Nominal rate (%)
+    min: 0.01
+    max: 15
+    step: 0.01
+  
+  effective_rate:
+    value: 3.85    # Effective rate (%)
+    min: 0.01
+    max: 15
+    step: 0.01
+  
   tilgung:
-    value: 2.00    # Annual repayment rate (%)
+    value: 2.50    # Annual repayment rate (%)
+    min: 0.01
+    max: 10
+    step: 0.01
+  
   duration:
     value: 15      # Contract duration (years)
+    min: 1
+    max: 40
+    step: 1
+  
+  default_special_payment:
+    value: 29000   # Annual special payment (EUR)
+    min: 0
+    max: 1000000
+    step: 1
 ```
 
 ### Applying Configuration Changes
